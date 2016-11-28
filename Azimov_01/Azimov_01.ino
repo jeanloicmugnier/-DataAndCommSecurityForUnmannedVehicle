@@ -584,6 +584,11 @@ void setup(void) {
 //
 // =================================================================================================
 void loop(void) {
+  int val;
+  float pkPa; // pressure in kPa
+  val = analogRead(pressureAnaPin); // lecture de la pression capteur
+  pkPa = (float)val - 2.5;   // pression en kPa
+  displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
   float myCap = 0.0;
   int randNumber = 0;
 
@@ -688,4 +693,5 @@ void loop(void) {
 
   delay(20);   // temporisation 20 mS
 }
+
 
