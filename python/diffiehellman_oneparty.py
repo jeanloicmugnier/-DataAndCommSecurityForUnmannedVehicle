@@ -19,6 +19,7 @@ along with the software.  If not, see <http://www.gnu.org/licenses/>.
 
 from random import randint
 import serial
+import siphash
 from cycles import *
 from util import *
 from time import sleep
@@ -74,11 +75,16 @@ def main():
         arduino.flush()
         cycle_arduino_to_PC(Diffie_Hellman_AES_Key_exchange, arduino)
     elif choice=='3':
-	print "Synch"
-        #synchronize("ready\n", arduino)
-	print "End Synch"
-        arduino.write("d")
-	print "End write"
+    	print "Synch"
+            #synchronize("ready\n", arduino)
+    	print "End Synch"
+        key = '0123456789ABCDEF'
+        sipa = siphash.SipHash_2_4(key, 'a').hash();
+        sipd = siphash.SipHash_2_4(key, 'd').hash();
+    	print "End write"
+        print "Hash Message a:", 'a'+str(sipa)
+        print "Hash Message d:", 'b'+str(sipd)
+        arduino.write('d')
 
 main()
 
