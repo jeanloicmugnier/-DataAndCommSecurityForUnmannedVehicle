@@ -14,6 +14,7 @@ int flagAction = STOP ;             // definition d'un flag d'action 0 = arret, 
 int flagAcquire = 99;               // 0 = lire devant, 1 lire D, 2 lire gauche, 99 lire tous les capteurs
 int flagObstacleSide = NoOBST;      // 0 = devant, 1 = Droite, 2 = Gauche,  3 = arriere,  99 pas d'obstacle
 int currentSpeed = 0;               // memorisation de la vitesse actuelle
+byte pressureAnaPin = 9;
 
 // =================================================================================================
 //                                definition d'un compteur de temps
