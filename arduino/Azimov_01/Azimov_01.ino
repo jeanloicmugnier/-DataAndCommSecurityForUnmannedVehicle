@@ -20,6 +20,7 @@ const String CompilationDate = "03/12/2015";          // date de compilation de 
 
 #include <SoftwareSerial.h>
 #include <Wire.h>
+#include <SD.h>
 /*
 #include <LiquidCrystal.h>
 */
@@ -570,6 +571,14 @@ void setup(void) {
   displayMsg (" ");
   displayMsg ("AZIMOV : Initialisation terminee ...... ");
   displayMsg (" ");
+
+  // Initialisation de la carte SD
+  displayMsg("Initialisation de la carte SD...");
+  if (!SD.begin(4)) {
+    displayMsg("initialisation echouee !");
+    return;
+  }
+  displayMsg("initialisation terminee.");
 }
 
 // =================================================================================================
@@ -593,20 +602,18 @@ void loop(void) {
   int randNumber = 0;
 
   if (Serial1.available() > 0) {
-    int inByte = Serial1.read();
-    switch (inByte) {
-
+    String inputStr = Serial1.readString();
       // =================================== CMD de tests =================================
-      case '1' :   // test des capteurs sonar
+      if(inputStr=="1") {   // test des capteurs sonar
         readDistanceSonarAvant();
         readDistanceSonarArriere();
         displayMsg ("Distance avant   :" + String(DistanceF) + " cm");
         displayMsg ("Distance droite  :" + String(DistanceD) + " cm");
         displayMsg ("Distance gauche  :" + String(DistanceG) + " cm");
         displayMsg ("Distance arriere :" + String(DistanceR) + " cm");
-        break;
+      }
 
-      case '2' :   // test des moteurs
+      else if(inputStr=="2") {   // test des moteurs
         displayMsg ("Test des moteurs");
         for (int i = speedMotorMini; i < speedMotorMaxi; i = i + 10) {
           displayMsg ("Vitesse = " + String(i));
@@ -614,22 +621,22 @@ void loop(void) {
           delay(1000);
         }
         cmdMotor (0 , FORWARD);
-        break;
+      }
 
-      case '3' :   // test du magnetometre
+      else if(inputStr=="3") {   // test du magnetometre
         displayMsg ("Test accelerometre-magnetometre");
         myCap = readHeading ();
         delay(200);
         displayMsg("Cap = " + String(myCap));
-        break;
+      }
 
-      case '4' :  // test du suivi de Cap
+      else if(inputStr=="2") {  // test du suivi de Cap
         displayMsg ("Test suivi de Cap 310");
         followCap(310);    // suivre le cap 310
         stopFrein();
-        break;
+      }
 
-      case '5' :  // test de rotation
+      else if(inputStr=="5") {  // test de rotation
         displayMsg ("Test de rotation : 90 Droite");
         myCap = readHeading ();
         displayMsg("Cap = " + String(myCap));
@@ -637,41 +644,42 @@ void loop(void) {
         stopFrein();
         delay(200);
         myCap = readHeading ();
-        displayMsg("Cap = " + String(myCap)); break;
+        displayMsg("Cap = " + String(myCap)); 
+      }
 
       // ========================================== fin CMD de tests =================================
 
-      case 'a' :  // marche avant
+      else if(inputStr=="a") {  // marche avant
         displayMsg ("Marche avant.....");
         cmdMotor (150, FORWARD);
-        break;
+      }
 
-      case 'r' :  // marche arriere
+      else if(inputStr=="r") {  // marche arriere
         displayMsg ("Marche arriere .....");
         cmdMotor (150, BACKWARD);
-        break;
+      }
 
-      case 's' :  // stop
+      else if(inputStr=="s") { // stop
         displayMsg ("Arret des Moteurs .....");
         stopFrein();
-        break;
+      }
 
-      case 'd' :  // virage 90 degres a droite
+      else if(inputStr=="d") {  // virage 90 degres a droite
         displayMsg ("90 deg droite.....");
         rotateMotor (speedMotorDesengage, DROITE, 90);
         stopFrein();
-        break;
+      }
 
-      case 'g' :  // virage 90 degres a gauchee
+      else if(inputStr=="g") {  // virage 90 degres a gauchee
         displayMsg ("90 deg gauche.....");
         rotateMotor (speedMotorDesengage, GAUCHE, 90);
         stopFrein();
-        break;
+      }
         
-      default:
-        displayMsg ("Sequence non reconue : " + String(inByte));
-
-    } // end switch
+      else {
+        displayMsg ("Sequence non reconue : " + String(inputStr));
+      }
+      
   }  // end read serial1
 
   
@@ -692,6 +700,18 @@ void loop(void) {
   detecteObstacle();                        // evitement d'obstacles
 
   delay(20);   // temporisation 20 mS
+}
+
+
+// =================================================================================================
+/*
+ * Méthode permettant l'enregistrement de données reçues par via un capteur dans la carte SD
+ *      pin est le numéro de pin sur lequel le capteur est branché
+ *      prefix est le nom de la donnée enregistrée qui sera suivie de la date
+ */
+// =================================================================================================
+void startRecording(int pin, String prefix) {
+   
 }
 
 
