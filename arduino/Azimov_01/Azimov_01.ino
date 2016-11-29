@@ -8,7 +8,6 @@ const String CurrentRelease = "Azimov-V1-R1 a";    // version courante du logici
 const String CompilationDate = "03/12/2015";          // date de compilation de la version
 
 
-
 //#define LCD_DISPLAY true
 #define SERIAL_CONSOLE true
 #define SERIAL_RADIO true
@@ -30,6 +29,12 @@ const String CompilationDate = "03/12/2015";          // date de compilation de 
 #include "Telemetres.h"
 #include "MotorShield.h"
 #include "Azimov_01.h"
+
+// =================================================================================================
+//                                 variables utiles dans le programme
+// =================================================================================================
+
+File file;
 
 // =================================================================================================
 //                                    displayMsg (String myMsg)
@@ -472,7 +477,7 @@ void desengageObstacle(void) {
 // =================================================================================================
 void detecteObstacle(void) {
 
-boolean OnDEBUG = true;   // afichage des informations detaillé pour mise au point
+boolean OnDEBUG = false;   // afichage des informations detaillé pour mise au point
 
   if (flagAction == FORWARD) {
     readDistanceSonarAvant();             // lecture des telemetres avant
@@ -573,8 +578,10 @@ void setup(void) {
   displayMsg (" ");
 
   // Initialisation de la carte SD
+  pinMode(53, OUTPUT);
+  digitalWrite(53, HIGH);
   displayMsg("Initialisation de la carte SD...");
-  if (!SD.begin(4)) {
+  if (!SD.begin(53)) {
     displayMsg("initialisation echouee !");
     return;
   }
@@ -597,7 +604,7 @@ void loop(void) {
   float pkPa; // pressure in kPa
   val = analogRead(pressureAnaPin); // lecture de la pression capteur
   pkPa = (float)val - 2.5;   // pression en kPa
-  displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
+  //displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
   float myCap = 0.0;
   int randNumber = 0;
 
@@ -675,6 +682,14 @@ void loop(void) {
         rotateMotor (speedMotorDesengage, GAUCHE, 90);
         stopFrein();
       }
+
+      else if(inputStr=="rec") {  // enregistrer (la pression pour l'exemple)
+        startRecording(pressureAnaPin, "Pressure");
+      }
+
+      else if(inputStr=="srec") {  // arrêter l'acquisition (de la pression)
+        stopRecording(file);
+      }
         
       else {
         displayMsg ("Sequence non reconue : " + String(inputStr));
@@ -698,6 +713,10 @@ void loop(void) {
   flagAcquire = 99;                         // lire tous les capteurs avant
   readDistanceSonarAvant();
   detecteObstacle();                        // evitement d'obstacles
+  if(file) {
+    file.println("VALEUR LUE PAR CAPTEUR:" + String(val));
+    displayMsg("Ecriture dans le fichier");
+  }
 
   delay(20);   // temporisation 20 mS
 }
@@ -711,7 +730,16 @@ void loop(void) {
  */
 // =================================================================================================
 void startRecording(int pin, String prefix) {
-   
+  String date = "UNDEFINED"; // à mettre à jour
+  file = SD.open(prefix+date+".txt", FILE_WRITE);
+  if(file) file.println("msg de test");
+  displayMsg("ouverture du fichier : "+prefix+date+".txt");
+}
+
+void stopRecording(File myFile) {
+  myFile.close();
+  Serial.println("Fichier ferme");
+  displayMsg("Fermeture du fichier");
 }
 
 
