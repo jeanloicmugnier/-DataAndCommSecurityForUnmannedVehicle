@@ -578,10 +578,10 @@ void setup(void) {
   displayMsg (" ");
 
   // Initialisation de la carte SD
-  pinMode(53, OUTPUT);
-  digitalWrite(53, HIGH);
+  pinMode(10, OUTPUT);
+  //digitalWrite(10, HIGH);
   displayMsg("Initialisation de la carte SD...");
-  if (!SD.begin(53)) {
+  if (!SD.begin(4)) {
     displayMsg("initialisation echouee !");
     return;
   }
@@ -730,7 +730,7 @@ void loop(void) {
  */
 // =================================================================================================
 void startRecording(int pin, String prefix) {
-  String date = "UNDEFINED"; // à mettre à jour
+  String date = ""; // à mettre à jour
   file = SD.open(prefix+date+".txt", FILE_WRITE);
   if(file) file.println("msg de test");
   displayMsg("ouverture du fichier : "+prefix+date+".txt");
