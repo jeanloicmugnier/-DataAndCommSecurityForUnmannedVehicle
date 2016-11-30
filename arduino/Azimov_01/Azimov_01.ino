@@ -755,15 +755,15 @@ void stopRecording(String filename) {
   for(int k = 0; k < Sensors; k++) {
     if(names[k] == filename) {
       files[k].close();
+      displayMsg("Fermeture du fichier "+names[k]);
       names[k] = "";
-      displayMsg("Fermeture du fichier");
     }
   }
 }
 
 int correspondingPin(String sensorName) {
   if(sensorName=="pressure") return pressureAnaPin;
-  else if(sensorName=="sonaravant") return Trig;
+  else if(sensorName=="vitmota") return vitesseMotA;
   else return 0;
 }
 
