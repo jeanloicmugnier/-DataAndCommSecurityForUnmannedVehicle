@@ -6,7 +6,7 @@
 // =================================================================================================
 const String CurrentRelease = "Azimov-V1-R1 a";    // version courante du logiciel
 const String CompilationDate = "03/12/2015";          // date de compilation de la version
-
+const int Sensors = 10; // Nombre de capteurs max dont on pourrait récupérer les données
 
 //#define LCD_DISPLAY true
 #define SERIAL_CONSOLE true
@@ -34,7 +34,10 @@ const String CompilationDate = "03/12/2015";          // date de compilation de 
 //                                 variables utiles dans le programme
 // =================================================================================================
 
-File file;
+File files[Sensors]; // fichier associé aux capteurs
+int pins[Sensors]; // broche associée aux capteurs
+String names[Sensors]; // nom de la donnée acquise par le capteur
+
 
 // =================================================================================================
 //                                    displayMsg (String myMsg)
@@ -683,12 +686,12 @@ void loop(void) {
         stopFrein();
       }
 
-      else if(inputStr=="rec") {  // enregistrer (la pression pour l'exemple)
-        startRecording(pressureAnaPin, "Pressure");
+      else if(inputStr.substring(0,inputStr.indexOf(' '))=="rec") {  // commencer l'acquisition d'une donnée
+        startRecording(correspondingPin(inputStr.substring(inputStr.indexOf(' ')+1)), inputStr.substring(inputStr.indexOf(' ')+1));
       }
 
-      else if(inputStr=="srec") {  // arrêter l'acquisition (de la pression)
-        stopRecording(file);
+      else if(inputStr.substring(0,inputStr.indexOf(' '))=="srec") {  // arrêter l'acquisition d'une donnée
+        stopRecording(inputStr.substring(inputStr.indexOf(' ')+1));
       }
         
       else {
@@ -713,9 +716,11 @@ void loop(void) {
   flagAcquire = 99;                         // lire tous les capteurs avant
   readDistanceSonarAvant();
   detecteObstacle();                        // evitement d'obstacles
-  if(file) {
-    file.println("VALEUR LUE PAR CAPTEUR:" + String(val));
-    displayMsg("Ecriture dans le fichier");
+  for(int i = 0; i < Sensors; i++) {
+    if(files[i]) {
+      files[i].println(String(millis())+"ms : " + String(analogRead(pins[i])));
+      displayMsg("Ecriture dans le fichier "+names[i]);
+    }
   }
 
   delay(20);   // temporisation 20 mS
@@ -729,17 +734,36 @@ void loop(void) {
  *      prefix est le nom de la donnée enregistrée qui sera suivie de la date
  */
 // =================================================================================================
-void startRecording(int pin, String prefix) {
-  String date = ""; // à mettre à jour
-  file = SD.open(prefix+date+".txt", FILE_WRITE);
-  if(file) file.println("msg de test");
-  displayMsg("ouverture du fichier : "+prefix+date+".txt");
+void startRecording(int pin, String filename) {
+  int k;
+  for(k = 0; k < Sensors; k++) {
+    if(!files[k]) {
+      files[k] = SD.open(filename+".txt", FILE_WRITE);
+      pins[k] = pin;
+      names[k] = filename;
+      displayMsg("ouverture du fichier : "+filename+".txt");
+      break;
+    }
+  }
+  if(k==Sensors) {
+    displayMsg("Trop de fichiers actuellement ouverts.");
+  }
+  
 }
 
-void stopRecording(File myFile) {
-  myFile.close();
-  Serial.println("Fichier ferme");
-  displayMsg("Fermeture du fichier");
+void stopRecording(String filename) {
+  for(int k = 0; k < Sensors; k++) {
+    if(names[k] == filename) {
+      files[k].close();
+      names[k] = "";
+      displayMsg("Fermeture du fichier");
+    }
+  }
 }
 
+int correspondingPin(String sensorName) {
+  if(sensorName=="pressure") return pressureAnaPin;
+  else if(sensorName=="sonaravant") return Trig;
+  else return 0;
+}
 
