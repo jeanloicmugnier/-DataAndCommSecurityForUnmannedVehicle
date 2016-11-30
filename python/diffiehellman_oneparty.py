@@ -78,12 +78,18 @@ def main():
     	print "Synch"
             #synchronize("ready\n", arduino)
     	print "End Synch"
-        key = '0123456789ABCDEF'
-        sipa = siphash.SipHash_2_4(key, 'a').hash();
+        key = 'ABCDEFGHIJKLMNOP';
+        sipa = siphash.SipHash_2_4(key).update('a').hexdigest();
+        sipaa = siphash.SipHash_2_4(key, 'a').hash();
         sipd = siphash.SipHash_2_4(key, 'd').hash();
+        sipb = siphash.SipHash_2_4(key, 'b').hash();
+        sipc = siphash.SipHash_2_4(key, 'c').hash();
     	print "End write"
         print "Hash Message a:", 'a'+str(sipa)
-        print "Hash Message d:", 'b'+str(sipd)
+        print "Hash Message d:", 'd'+str(sipd)
+        print "Hash Message b:", 'b'+str(sipb)
+        print "Hash Message c:", 'c'+str(sipc)
+        print "Hash Message aa:", 'a'+str(sipaa)
         arduino.write('d')
 
 main()
