@@ -29,6 +29,8 @@ const int Sensors = 10; // Nombre de capteurs max dont on pourrait récupérer l
 #include "Telemetres.h"
 #include "MotorShield.h"
 #include "Azimov_01.h"
+#include "SipHash_2_4.h"
+#include "HexConversionUtils.h"
 
 // =================================================================================================
 //                                 variables utiles dans le programme
@@ -37,6 +39,8 @@ const int Sensors = 10; // Nombre de capteurs max dont on pourrait récupérer l
 File files[Sensors]; // fichier associé aux capteurs
 int pins[Sensors]; // broche associée aux capteurs
 String names[Sensors]; // nom de la donnée acquise par le capteur
+const uint8_t key[] PROGMEM = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+                               0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50};
 
 
 // =================================================================================================
@@ -613,8 +617,24 @@ void loop(void) {
 
   if (Serial1.available() > 0) {
     String inputStr = Serial1.readString();
+    char tmp[17];
+    int indexSeparator = inputStr.indexOf(';');
+    String command = inputStr.substring(0, indexSeparator);
+    String hashed = inputStr.substring(indexSeparator + 1);
+    sipHash.initFromPROGMEM(key);
+    for (int i = 0; i < command.length(); i++) {
+      sipHash.updateHash((byte)command.charAt(i));
+    }
+    sipHash.finish(); // result in BigEndian format
+    reverse64(sipHash.result); // go to little Endian
+    hexToAscii(sipHash.result,8,tmp,17);
+    String hashedString(tmp);
+    displayMsg(command);
+    displayMsg(hashed);
+    displayMsg(hashedString);
+    if (hashedString.equalsIgnoreCase(hashed)) {
       // =================================== CMD de tests =================================
-      if(inputStr=="1") {   // test des capteurs sonar
+      if(command=="1") {   // test des capteurs sonar
         readDistanceSonarAvant();
         readDistanceSonarArriere();
         displayMsg ("Distance avant   :" + String(DistanceF) + " cm");
@@ -623,7 +643,7 @@ void loop(void) {
         displayMsg ("Distance arriere :" + String(DistanceR) + " cm");
       }
 
-      else if(inputStr=="2") {   // test des moteurs
+      else if(command=="2") {   // test des moteurs
         displayMsg ("Test des moteurs");
         for (int i = speedMotorMini; i < speedMotorMaxi; i = i + 10) {
           displayMsg ("Vitesse = " + String(i));
@@ -633,20 +653,20 @@ void loop(void) {
         cmdMotor (0 , FORWARD);
       }
 
-      else if(inputStr=="3") {   // test du magnetometre
+      else if(command=="3") {   // test du magnetometre
         displayMsg ("Test accelerometre-magnetometre");
         myCap = readHeading ();
         delay(200);
         displayMsg("Cap = " + String(myCap));
       }
 
-      else if(inputStr=="2") {  // test du suivi de Cap
+      else if(command=="2") {  // test du suivi de Cap
         displayMsg ("Test suivi de Cap 310");
         followCap(310);    // suivre le cap 310
         stopFrein();
       }
 
-      else if(inputStr=="5") {  // test de rotation
+      else if(command=="5") {  // test de rotation
         displayMsg ("Test de rotation : 90 Droite");
         myCap = readHeading ();
         displayMsg("Cap = " + String(myCap));
@@ -659,44 +679,47 @@ void loop(void) {
 
       // ========================================== fin CMD de tests =================================
 
-      else if(inputStr=="a") {  // marche avant
+      else if(command=="a") {  // marche avant
         displayMsg ("Marche avant.....");
         cmdMotor (150, FORWARD);
       }
 
-      else if(inputStr=="r") {  // marche arriere
+      else if(command=="r") {  // marche arriere
         displayMsg ("Marche arriere .....");
         cmdMotor (150, BACKWARD);
       }
 
-      else if(inputStr=="s") { // stop
+      else if(command=="s") { // stop
         displayMsg ("Arret des Moteurs .....");
         stopFrein();
       }
 
-      else if(inputStr=="d") {  // virage 90 degres a droite
+      else if(command=="d") {  // virage 90 degres a droite
         displayMsg ("90 deg droite.....");
         rotateMotor (speedMotorDesengage, DROITE, 90);
         stopFrein();
       }
 
-      else if(inputStr=="g") {  // virage 90 degres a gauchee
+      else if(command=="g") {  // virage 90 degres a gauchee
         displayMsg ("90 deg gauche.....");
         rotateMotor (speedMotorDesengage, GAUCHE, 90);
         stopFrein();
       }
 
-      else if(inputStr.substring(0,inputStr.indexOf(' '))=="rec") {  // commencer l'acquisition d'une donnée
-        startRecording(correspondingPin(inputStr.substring(inputStr.indexOf(' ')+1)), inputStr.substring(inputStr.indexOf(' ')+1));
+      else if(command.substring(0,command.indexOf(' '))=="rec") {  // commencer l'acquisition d'une donnée
+        startRecording(correspondingPin(command.substring(command.indexOf(' ')+1)), command.substring(command.indexOf(' ')+1));
       }
 
-      else if(inputStr.substring(0,inputStr.indexOf(' '))=="srec") {  // arrêter l'acquisition d'une donnée
-        stopRecording(inputStr.substring(inputStr.indexOf(' ')+1));
+      else if(command.substring(0,command.indexOf(' '))=="srec") {  // arrêter l'acquisition d'une donnée
+        stopRecording(command.substring(command.indexOf(' ')+1));
       }
         
       else {
-        displayMsg ("Sequence non reconue : " + String(inputStr));
+        displayMsg ("Sequence non reconue : " + String(command));
       }
+    } else {
+      displayMsg("Tu essayes de m'avoir");
+    }
       
   }  // end read serial1
 

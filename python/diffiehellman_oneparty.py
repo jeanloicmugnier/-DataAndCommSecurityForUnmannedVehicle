@@ -20,6 +20,7 @@ along with the software.  If not, see <http://www.gnu.org/licenses/>.
 from random import randint
 import serial
 import siphash
+import time
 from cycles import *
 from util import *
 from time import sleep
@@ -56,11 +57,10 @@ def main():
     
     print "1. Send Encrypted Text from PC to Arduino"
     print "2. Send Encrypted Text from Arduino to PC"
-    print "3. Benchmark AES"
     
     choice = raw_input("\nEnter your choice: ")
     
-    while choice not in ['1','2','3']:
+    while choice not in ['1','2']:
         choice = raw_input("Wrong choice. Enter again: ")
     if choice == '1':
         plaintext = "c"
@@ -69,29 +69,12 @@ def main():
         arduino.write("PC_TO_ARDUINO")
         arduino.flush()
         cycle_PC_to_arduino_executer(plaintext, Diffie_Hellman_AES_Key_exchange , arduino)
-    elif choice == '2':
+    else:
         synchronize("ready\n", arduino)
         arduino.write("ARDUINO_TO_PC")
         arduino.flush()
         cycle_arduino_to_PC(Diffie_Hellman_AES_Key_exchange, arduino)
-    elif choice=='3':
-    	print "Synch"
-            #synchronize("ready\n", arduino)
-    	print "End Synch"
-        key = 'ABCDEFGHIJKLMNOP';
-        sipa = siphash.SipHash_2_4(key).update('a').hexdigest();
-        sipaa = siphash.SipHash_2_4(key, 'a').hash();
-        sipd = siphash.SipHash_2_4(key, 'd').hash();
-        sipb = siphash.SipHash_2_4(key, 'b').hash();
-        sipc = siphash.SipHash_2_4(key, 'c').hash();
-    	print "End write"
-        print "Hash Message a:", 'a'+str(sipa)
-        print "Hash Message d:", 'd'+str(sipd)
-        print "Hash Message b:", 'b'+str(sipb)
-        print "Hash Message c:", 'c'+str(sipc)
-        print "Hash Message aa:", 'a'+str(sipaa)
-        arduino.write('d')
-
+        
 main()
 
 
