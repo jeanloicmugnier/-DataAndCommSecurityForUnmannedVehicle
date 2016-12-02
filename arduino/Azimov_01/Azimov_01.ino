@@ -6,8 +6,7 @@
 // =================================================================================================
 const String CurrentRelease = "Azimov-V1-R1 a";    // version courante du logiciel
 const String CompilationDate = "03/12/2015";          // date de compilation de la version
-
-
+const int Sensors = 10; // Nombre de capteurs max dont on pourrait récupérer les données
 
 //#define LCD_DISPLAY true
 #define SERIAL_CONSOLE true
@@ -30,6 +29,19 @@ const String CompilationDate = "03/12/2015";          // date de compilation de 
 #include "Telemetres.h"
 #include "MotorShield.h"
 #include "Azimov_01.h"
+#include "SipHash_2_4.h"
+#include "HexConversionUtils.h"
+
+// =================================================================================================
+//                                 variables utiles dans le programme
+// =================================================================================================
+
+File files[Sensors]; // fichier associé aux capteurs
+int pins[Sensors]; // broche associée aux capteurs
+String names[Sensors]; // nom de la donnée acquise par le capteur
+const uint8_t key[] PROGMEM = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+                               0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50};
+
 
 // =================================================================================================
 //                                    displayMsg (String myMsg)
@@ -472,7 +484,7 @@ void desengageObstacle(void) {
 // =================================================================================================
 void detecteObstacle(void) {
 
-boolean OnDEBUG = true;   // afichage des informations detaillé pour mise au point
+boolean OnDEBUG = false;   // afichage des informations detaillé pour mise au point
 
   if (flagAction == FORWARD) {
     readDistanceSonarAvant();             // lecture des telemetres avant
@@ -573,6 +585,8 @@ void setup(void) {
   displayMsg (" ");
 
   // Initialisation de la carte SD
+  pinMode(10, OUTPUT);
+  //digitalWrite(10, HIGH);
   displayMsg("Initialisation de la carte SD...");
   if (!SD.begin(4)) {
     displayMsg("initialisation echouee !");
@@ -597,14 +611,33 @@ void loop(void) {
   float pkPa; // pressure in kPa
   val = analogRead(pressureAnaPin); // lecture de la pression capteur
   pkPa = (float)val - 2.5;   // pression en kPa
-  displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
+  //displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
   float myCap = 0.0;
   int randNumber = 0;
 
   if (Serial1.available() > 0) {
     String inputStr = Serial1.readString();
+    char tmp[17];
+    int indexSeparator1 = inputStr.indexOf(';');
+    int indexSeparator2 = inputStr.lastIndexOf(';');
+    String command = inputStr.substring(0, indexSeparator1);
+    String toHash = inputStr.substring(0, indexSeparator2);
+    String hashed = inputStr.substring(indexSeparator2 + 1);
+    sipHash.initFromPROGMEM(key);
+    for (int i = 0; i < toHash.length(); i++) {
+      sipHash.updateHash((byte)toHash.charAt(i));
+    }
+    sipHash.finish(); // result in BigEndian format
+    reverse64(sipHash.result); // go to little Endian
+    hexToAscii(sipHash.result,8,tmp,17);
+    String hashedString(tmp);
+    //displayMsg(toHash);
+    //displayMsg(hashed);
+    //displayMsg(hashedString);
+    if (hashedString.equalsIgnoreCase(hashed)) {
+      Serial1.println("OK gros");
       // =================================== CMD de tests =================================
-      if(inputStr=="1") {   // test des capteurs sonar
+      if(command=="1") {   // test des capteurs sonar
         readDistanceSonarAvant();
         readDistanceSonarArriere();
         displayMsg ("Distance avant   :" + String(DistanceF) + " cm");
@@ -613,7 +646,7 @@ void loop(void) {
         displayMsg ("Distance arriere :" + String(DistanceR) + " cm");
       }
 
-      else if(inputStr=="2") {   // test des moteurs
+      else if(command=="2") {   // test des moteurs
         displayMsg ("Test des moteurs");
         for (int i = speedMotorMini; i < speedMotorMaxi; i = i + 10) {
           displayMsg ("Vitesse = " + String(i));
@@ -623,20 +656,20 @@ void loop(void) {
         cmdMotor (0 , FORWARD);
       }
 
-      else if(inputStr=="3") {   // test du magnetometre
+      else if(command=="3") {   // test du magnetometre
         displayMsg ("Test accelerometre-magnetometre");
         myCap = readHeading ();
         delay(200);
         displayMsg("Cap = " + String(myCap));
       }
 
-      else if(inputStr=="2") {  // test du suivi de Cap
+      else if(command=="2") {  // test du suivi de Cap
         displayMsg ("Test suivi de Cap 310");
         followCap(310);    // suivre le cap 310
         stopFrein();
       }
 
-      else if(inputStr=="5") {  // test de rotation
+      else if(command=="5") {  // test de rotation
         displayMsg ("Test de rotation : 90 Droite");
         myCap = readHeading ();
         displayMsg("Cap = " + String(myCap));
@@ -649,36 +682,47 @@ void loop(void) {
 
       // ========================================== fin CMD de tests =================================
 
-      else if(inputStr=="a") {  // marche avant
+      else if(command=="a") {  // marche avant
         displayMsg ("Marche avant.....");
         cmdMotor (150, FORWARD);
       }
 
-      else if(inputStr=="r") {  // marche arriere
+      else if(command=="r") {  // marche arriere
         displayMsg ("Marche arriere .....");
         cmdMotor (150, BACKWARD);
       }
 
-      else if(inputStr=="s") { // stop
+      else if(command=="s") { // stop
         displayMsg ("Arret des Moteurs .....");
         stopFrein();
       }
 
-      else if(inputStr=="d") {  // virage 90 degres a droite
+      else if(command=="d") {  // virage 90 degres a droite
         displayMsg ("90 deg droite.....");
         rotateMotor (speedMotorDesengage, DROITE, 90);
         stopFrein();
       }
 
-      else if(inputStr=="g") {  // virage 90 degres a gauchee
+      else if(command=="g") {  // virage 90 degres a gauchee
         displayMsg ("90 deg gauche.....");
         rotateMotor (speedMotorDesengage, GAUCHE, 90);
         stopFrein();
       }
+
+      else if(command.substring(0,command.indexOf(' '))=="rec") {  // commencer l'acquisition d'une donnée
+        startRecording(correspondingPin(command.substring(command.indexOf(' ')+1)), command.substring(command.indexOf(' ')+1));
+      }
+
+      else if(command.substring(0,command.indexOf(' '))=="srec") {  // arrêter l'acquisition d'une donnée
+        stopRecording(command.substring(command.indexOf(' ')+1));
+      }
         
       else {
-        displayMsg ("Sequence non reconue : " + String(inputStr));
+        displayMsg ("Sequence non reconue : " + String(command));
       }
+    } else {
+      displayMsg("Tu essayes de m'avoir");
+    }
       
   }  // end read serial1
 
@@ -698,6 +742,11 @@ void loop(void) {
   flagAcquire = 99;                         // lire tous les capteurs avant
   readDistanceSonarAvant();
   detecteObstacle();                        // evitement d'obstacles
+  for(int i = 0; i < Sensors; i++) {
+    if(files[i]) {
+      displayMsg("Ecriture dans le fichier "+names[i]);
+    }
+  }
 
   delay(20);   // temporisation 20 mS
 }
@@ -710,8 +759,36 @@ void loop(void) {
  *      prefix est le nom de la donnée enregistrée qui sera suivie de la date
  */
 // =================================================================================================
-void startRecording(int pin, String prefix) {
-   
+void startRecording(int pin, String filename) {
+  int k;
+  for(k = 0; k < Sensors; k++) {
+    if(!files[k]) {
+      files[k] = SD.open(filename+".txt", FILE_WRITE);
+      pins[k] = pin;
+      names[k] = filename;
+      displayMsg("ouverture du fichier : "+filename+".txt");
+      break;
+    }
+  }
+  if(k==Sensors) {
+    displayMsg("Trop de fichiers actuellement ouverts.");
+  }
+  
 }
 
+void stopRecording(String filename) {
+  for(int k = 0; k < Sensors; k++) {
+    if(names[k] == filename) {
+      files[k].close();
+      displayMsg("Fermeture du fichier "+names[k]);
+      names[k] = "";
+    }
+  }
+}
+
+int correspondingPin(String sensorName) {
+  if(sensorName=="pressure") return pressureAnaPin;
+  else if(sensorName=="vitmota") return vitesseMotA;
+  else return 0;
+}
 
