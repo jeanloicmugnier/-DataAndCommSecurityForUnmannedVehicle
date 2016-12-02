@@ -744,6 +744,7 @@ void loop(void) {
   detecteObstacle();                        // evitement d'obstacles
   for(int i = 0; i < Sensors; i++) {
     if(files[i]) {
+      files[i].println(String(millis())+"ms : " + String(analogRead(pins[i])));
       displayMsg("Ecriture dans le fichier "+names[i]);
     }
   }
@@ -787,8 +788,10 @@ void stopRecording(String filename) {
 }
 
 int correspondingPin(String sensorName) {
-  if(sensorName=="pressure") return pressureAnaPin;
+  /*if(sensorName=="pressure") return pressureAnaPin;
   else if(sensorName=="vitmota") return vitesseMotA;
+  else if(sensorName=="vitmotb") return vitesseMotB;
+  else */if(sensorName=="dstavant") return EZ_Analogique;
   else return 0;
 }
 
