@@ -618,21 +618,24 @@ void loop(void) {
   if (Serial1.available() > 0) {
     String inputStr = Serial1.readString();
     char tmp[17];
-    int indexSeparator = inputStr.indexOf(';');
-    String command = inputStr.substring(0, indexSeparator);
-    String hashed = inputStr.substring(indexSeparator + 1);
+    int indexSeparator1 = inputStr.indexOf(';');
+    int indexSeparator2 = inputStr.lastIndexOf(';');
+    String command = inputStr.substring(0, indexSeparator1);
+    String toHash = inputStr.substring(0, indexSeparator2);
+    String hashed = inputStr.substring(indexSeparator2 + 1);
     sipHash.initFromPROGMEM(key);
-    for (int i = 0; i < command.length(); i++) {
-      sipHash.updateHash((byte)command.charAt(i));
+    for (int i = 0; i < toHash.length(); i++) {
+      sipHash.updateHash((byte)toHash.charAt(i));
     }
     sipHash.finish(); // result in BigEndian format
     reverse64(sipHash.result); // go to little Endian
     hexToAscii(sipHash.result,8,tmp,17);
     String hashedString(tmp);
-    displayMsg(command);
-    displayMsg(hashed);
-    displayMsg(hashedString);
+    //displayMsg(toHash);
+    //displayMsg(hashed);
+    //displayMsg(hashedString);
     if (hashedString.equalsIgnoreCase(hashed)) {
+      Serial1.println("OK gros");
       // =================================== CMD de tests =================================
       if(command=="1") {   // test des capteurs sonar
         readDistanceSonarAvant();
@@ -741,7 +744,6 @@ void loop(void) {
   detecteObstacle();                        // evitement d'obstacles
   for(int i = 0; i < Sensors; i++) {
     if(files[i]) {
-      files[i].println(String(millis())+"ms : " + String(analogRead(pins[i])));
       displayMsg("Ecriture dans le fichier "+names[i]);
     }
   }
