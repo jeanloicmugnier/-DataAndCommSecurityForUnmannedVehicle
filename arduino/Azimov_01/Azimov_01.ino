@@ -609,7 +609,7 @@ void setup(void) {
 void loop(void) {
   int val;
   float pkPa; // pressure in kPa
-  val = analogRead(pressureAnaPin); // lecture de la pression capteur
+  val = analogRead(9); // lecture de la pression capteur, /!\ errone /!\
   pkPa = (float)val - 2.5;   // pression en kPa
   //displayMsg("VALEUR LUE PAR CAPTEUR:" + String(val));
   float myCap = 0.0;
@@ -716,6 +716,10 @@ void loop(void) {
       else if(command.substring(0,command.indexOf(' '))=="srec") {  // arrêter l'acquisition d'une donnée
         stopRecording(command.substring(command.indexOf(' ')+1));
       }
+
+      else if(command.substring(0,command.indexOf(' '))=="get") {  // récupérer un certain type de données
+        getData(command.substring(command.indexOf(' ')+1));
+      }
         
       else {
         displayMsg ("Sequence non reconue : " + String(command));
@@ -744,10 +748,11 @@ void loop(void) {
   detecteObstacle();                        // evitement d'obstacles
   for(int i = 0; i < Sensors; i++) {
     if(files[i]) {
+      files[i].println(String(millis())+"ms : " + String(analogRead(pins[i])));
       displayMsg("Ecriture dans le fichier "+names[i]);
     }
   }
-
+  
   delay(20);   // temporisation 20 mS
 }
 
@@ -786,9 +791,27 @@ void stopRecording(String filename) {
   }
 }
 
+void getData(String filename) {
+  for(int i = 0; i < Sensors; i++) {
+    if(names[i]==filename) {
+      displayMsg("Une capture est en cours dans ce fichier.");
+      return;
+    }
+  }
+  File f = SD.open(filename+".txt");
+  String s = "";
+  while(f.available()) {
+    s+=(char)f.read();
+  }
+  displayMsg("Contenu du fichier => "+s);
+  f.close();
+}
+
 int correspondingPin(String sensorName) {
-  if(sensorName=="pressure") return pressureAnaPin;
+  /*if(sensorName=="pressure") return pressureAnaPin;
   else if(sensorName=="vitmota") return vitesseMotA;
+  else if(sensorName=="vitmotb") return vitesseMotB;
+  else */if(sensorName=="dstavant") return EZ_Analogique;
   else return 0;
 }
 
