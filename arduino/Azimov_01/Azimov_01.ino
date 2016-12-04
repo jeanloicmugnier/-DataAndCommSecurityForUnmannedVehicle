@@ -305,7 +305,7 @@ int initSonar(void) {
 
 
 // =================================================================================================
-//                                           initMotorShiled (void)
+//                                           initMotorShield (void)
 //  prepare le shield motor pour l'utilisation
 //      configure les broches numeriques des moteur A et B en sorties
 //      initialisation des moteur A et B :
