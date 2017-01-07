@@ -1,0 +1,4 @@
+to compile the code in the main.cpp file, just tap "make" in the terminal.
+It will create a executable called "test".
+Execute it by entering "./test" in the terminal located in this folder.
+To clean just tap "make clean".
