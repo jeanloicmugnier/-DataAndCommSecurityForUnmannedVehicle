@@ -10,7 +10,6 @@ extern int crypto_stream_salsa20_amd64_xmm6_beforenm(unsigned char *,const unsig
 extern int crypto_stream_salsa20_amd64_xmm6_afternm(unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
 extern int crypto_stream_salsa20_amd64_xmm6_xor_afternm(unsigned char *,const unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
 
-
 #define crypto_stream_salsa20 crypto_stream_salsa20_amd64_xmm6
 #define crypto_stream_salsa20_xor crypto_stream_salsa20_amd64_xmm6_xor
 #define crypto_stream_salsa20_beforenm crypto_stream_salsa20_amd64_xmm6_beforenm
