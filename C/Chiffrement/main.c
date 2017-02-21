@@ -13,9 +13,11 @@ int main(int argc, char** argv) {
     printf("the size of the key is: %lu bytes \n", strlen(key));
     printf("the size of the nounce is: %lu bytes \n", strlen(nounce));
     
-    crypto_stream_xor(c,msg,strlen(msg),nounce,key);
+    //crypto_stream_xor(c,msg,strlen(msg),nounce,key);
+    c = "�<Y��Z�ΰА���a5(����H>�k���nI�Y����`R8*�����f����
+                                                                      T!�?��ja+��!�Rݗ�J\0";
+    printf("coucou: %lu \n",strlen(c));
     crypto_stream_xor(dec, c, strlen(c),nounce,key);
-    //c = crypto_stream_xor(msg,nouce,key);
 
     printf("the message is:' %s ' and it's size is %lu \n", msg, strlen(msg));
     printf("the cipher is:' %s ' and it's size is: %lu \n", c, strlen(c));
