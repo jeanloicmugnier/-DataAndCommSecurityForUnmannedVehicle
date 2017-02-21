@@ -3,20 +3,13 @@
 
 #define crypto_stream_salsa20_amd64_xmm6_KEYBYTES 32
 #define crypto_stream_salsa20_amd64_xmm6_NONCEBYTES 8
-#ifdef __cplusplus
-#include <string>
-extern std::string crypto_stream_salsa20_amd64_xmm6(size_t,const std::string &,const std::string &);
-extern std::string crypto_stream_salsa20_amd64_xmm6_xor(const std::string &,const std::string &,const std::string &);
-extern "C" {
-#endif
+
 extern int crypto_stream_salsa20_amd64_xmm6(unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
 extern int crypto_stream_salsa20_amd64_xmm6_xor(unsigned char *,const unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
 extern int crypto_stream_salsa20_amd64_xmm6_beforenm(unsigned char *,const unsigned char *);
 extern int crypto_stream_salsa20_amd64_xmm6_afternm(unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
 extern int crypto_stream_salsa20_amd64_xmm6_xor_afternm(unsigned char *,const unsigned char *,unsigned long long,const unsigned char *,const unsigned char *);
-#ifdef __cplusplus
-}
-#endif
+
 
 #define crypto_stream_salsa20 crypto_stream_salsa20_amd64_xmm6
 #define crypto_stream_salsa20_xor crypto_stream_salsa20_amd64_xmm6_xor
