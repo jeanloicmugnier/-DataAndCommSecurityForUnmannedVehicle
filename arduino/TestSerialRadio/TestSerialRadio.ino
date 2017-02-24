@@ -15,14 +15,14 @@ void setup() {
     radio.openReadingPipe(1, txAddr);
 }
 
-char cmd;
-char ack[3];
+char cmd[12];
+char ack[4];
 void loop() {
   radio.stopListening();
   // send data only when you receive data:
   if (Serial.available() > 0) {
     // read the incoming byte:
-    cmd = Serial.read();
+    Serial.readBytes(cmd, 11);
   
     // say what you got:
     Serial.print("I send: ");
