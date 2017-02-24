@@ -15,7 +15,7 @@ const int EchoG = 46;
 const int TrigR = 49;    // sonar gauche HC SR04
 const int EchoR = 48;
 const int EZ_tempsVol =  22;   // sonar avant, calcul par temps de vol (numerique)
-//const int EZ_Analogique = A10;        // sonar avant, port analogique
+const int EZ_Analogique = A10;        // sonar avant, port analogique
 
 // definition de svariable pour les calculs de distances
 float DistanceF = 0;          // distance frontale

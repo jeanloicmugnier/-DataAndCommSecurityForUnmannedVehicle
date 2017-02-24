@@ -551,13 +551,14 @@ void setup(void) {
 #ifdef SERIAL_CONSOLE
   initSerials(SERIALCONSOL, 9600);       // initilisation de la ligne serie pour la console
 #endif
+  //radio.begin();
+  //radio.setPALevel(RF24_PA_MIN);
+  //radio.openReadingPipe(1, rxAddr);
+  //radio.openWritingPipe(txAddr);
 
-  radio.begin();
-  radio.setPALevel(RF24_PA_MIN);
-  radio.openReadingPipe(1, rxAddr);
-  radio.openWritingPipe(txAddr);
-  radio.setRetries(15, 15);
-  radio.startListening();
+  //radio.setRetries(15, 15);
+  //radio.startListening();
+
   displayMsg ("Programme AZIMOV : initialisation ...");
   displayMsg ("Current Release: " + CurrentRelease);        // version de logiciel
   displayMsg ("Compliation du : " + CompilationDate);       // date de compilation
@@ -599,12 +600,6 @@ void setup(void) {
   
   
   displayMsg("initialisation terminee.");
-  String str_ack = "ACK";
-  char ack[4];
-  str_ack.toCharArray(ack, str_ack.length()+1);
-  Serial.println(str_ack);
-  Serial.println(ack);
-  Serial.println(str_ack.length());
 }
 
 // =================================================================================================
@@ -634,8 +629,8 @@ void loop(void) {
     Serial.println("message reçu: " + command);
     radio.stopListening();
     String str_ack = "ACK";
-    char ack[3];
-    str_ack.toCharArray(ack, str_ack.length());
+    char ack[4];
+    str_ack.toCharArray(ack, str_ack.length()+1);
     radio.write(&ack, sizeof(ack));
     // =================================== CMD de tests =================================
     if(command=="1") {   // test des capteurs sonar
@@ -741,7 +736,16 @@ void loop(void) {
     detecteObstacle();                        // evitement d'obstacles
     for(int i = 0; i < Sensors; i++) {
       if(files[i]) {
-        files[i].println(String(millis())+"ms : " + String(analogRead(pins[i])));
+        Serial.println("dans un fichier");
+        char* capture = (millis()) +"ms : " + (analogRead(pins[i]));
+        Serial.println("après capture");
+        files[i].println(String(capture));
+        char* cipher = malloc(strlen(capture));
+        char* dec = malloc(strlen(capture));
+        crypto_stream_xor(cipher,capture,strlen(capture),nounce,key);
+        crypto_stream_xor(dec, cipher, strlen(cipher),nounce,key);
+        files[i].println(String(cipher));
+        files[i].println(String(dec));
         displayMsg("Ecriture dans le fichier "+names[i]);
       }
     }
@@ -803,9 +807,9 @@ void getData(String filename) {
 
 int correspondingPin(String sensorName) {
   /*if(sensorName=="pressure") return pressureAnaPin;
-  else if(sensorName=="vitmota") return vitesseMotA;
+  else*/ if(sensorName=="vitmota") return vitesseMotA;
   else if(sensorName=="vitmotb") return vitesseMotB;
   else if(sensorName=="dstavant") return EZ_Analogique;
-  else*/ return 0;
+  else return 0;
 }
 
