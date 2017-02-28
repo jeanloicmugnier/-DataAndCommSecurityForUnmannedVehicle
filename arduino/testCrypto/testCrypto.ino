@@ -27,14 +27,19 @@ void loop() {
     Serial.println("recu: " + (String)msg);
     //char* msg = "The sun doesn't give light to the moon assuming The moon's going to owe it one";
    
-   
+    char* c = malloc(strlen(msg));
     char* dec = malloc(strlen(msg));
 
     //Serial.write("the size of the key is:" + strlen(key) + "bytes \n");
     //Serial.print("the size of the nounce is: %lu bytes \n", strlen(nounce));
-    
-    //crypto_stream_xor(c,msg,strlen(msg),nounce,key);
+
+    long start = micros();
+    crypto_stream_xor(c,msg,strlen(msg),nounce,key);
+    long elapsed = micros()-start;
     crypto_stream_xor(dec, msg, strlen(msg),nounce,key);
+    long elapsed2 = micros()-elapsed-start;
+    Serial.println("Chiffrement : "+String(elapsed));
+    Serial.println("Déchiffrement : "+String(elapsed2));
 
     //Serial.println("the message is:'" + (String)msg + "'");
     Serial.println("the decrypted msg is:'" + (String)dec + "'");
