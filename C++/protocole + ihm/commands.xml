@@ -1,0 +1,11 @@
+<commands>
+	<move>
+		<parameters>
+		<forward>
+		<right>
+		<left>
+		</parameters>
+	</move>
+	<keyexchangeprotocol>
+		<key>
+	<sync<

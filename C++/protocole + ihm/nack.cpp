@@ -1,0 +1,2 @@
+
+class Nack : Command{};
