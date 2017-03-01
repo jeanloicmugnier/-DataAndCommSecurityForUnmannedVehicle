@@ -16,7 +16,7 @@ void setup() {
  // Open serial communications and wait for port to open:
   Serial.begin(9600);
   // allow a little time to connect the serialMonitor before running the rest of the setup.
-  for (int i = 10; i>0; i--) {
+  for (int i = 3; i>0; i--) {
     delay(1000);
     Serial.print(F(" "));
     Serial.print(i);
@@ -27,13 +27,22 @@ void setup() {
  
   char tmp[17];
  
-  
     sipHash.initFromPROGMEM(key);
-    sipHash.updateHash((byte)'a');
+    float t = micros();
+    for(int i = 0; i<500; i++) {
+      sipHash.updateHash((byte)'a');
+    }
+    float elapsed = micros() - t;
     sipHash.finish(); // result in BigEndian format
     reverse64(sipHash.result); // go to little Endian
     hexToAscii(sipHash.result,8,tmp,17);
+    Serial.print("Hash : ");
     Serial.println(tmp);
+    //Serial.println("Temps écoulé pour hacher 16 octets : "+String(t2));
+    //float onebyte = t2/16;
+    //Serial.println("Temps pour hacher 1 octet : "+String(onebyte));
+    Serial.println(elapsed);
+    Serial.println("Octets hachés par seconde : "+String((sizeof(tmp)*500*1000000)/elapsed));
   
 }
 
