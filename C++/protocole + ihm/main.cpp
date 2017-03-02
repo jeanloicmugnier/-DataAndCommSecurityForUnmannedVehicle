@@ -6,6 +6,7 @@
  */
 
 #include <cstdlib>
+#include <QApplication>
 //#include "crypto_stream_cpp.h"
 #include <iostream>
 #include <bitset>
@@ -15,6 +16,7 @@
 #include "rover.h"
 #include "changesecurity.h"
 #include "sensors.h"
+#include "mainwindow.h"
 //use vector<bool> instead
 
 using namespace std;
@@ -133,6 +135,10 @@ int main(int argc, char** argv) {
     cout << endl << endl;
     //    bitset<28> lol = f->mount_frame();
     //    cout << lol << endl;
-    return 0;
+    QApplication app(argc, argv);
+    MainWindow window;
+    window.show();
+    return app.exec();
+    //return 0;
 }
 

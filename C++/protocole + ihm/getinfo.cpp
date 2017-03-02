@@ -1,2 +1,1 @@
-
-class GetInfo : Command{};
+//class GetInfo : Command{};

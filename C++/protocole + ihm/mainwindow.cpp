@@ -65,29 +65,29 @@ QString MainWindow::getDate() {
 }
 
 void MainWindow::clickForward() {
-    this->cs.move_rover(Direction::get_directions("FORWARD"), 1);
+    this->cs->move_rover(Direction::get_directions("FORWARD"), 1);
     ui->listInfos->addItem(getDate()+"Going forward");
 }
 
 void MainWindow::clickBackward() {
-    this->cs.move_rover(Direction::get_directions("BACKWARD"), 1);
+    this->cs->move_rover(Direction::get_directions("BACKWARD"), 1);
     ui->listInfos->addItem(getDate()+"Going backward");
 }
 
 void MainWindow::clickLeft() {
-    this->cs.move_rover(Direction::get_directions("LEFT"), 1);
+    this->cs->move_rover(Direction::get_directions("LEFT"), 1);
     ui->listInfos->addItem(getDate()+"Turning to the left");
 
 }
 
 void MainWindow::clickRight() {
-    this->cs.move_rover(Direction::get_directions("RIGHT"), 1);
+    this->cs->move_rover(Direction::get_directions("RIGHT"), 1);
     ui->listInfos->addItem(getDate()+"Turning to the right");
 }
 
 void MainWindow::clickStop() {
 
-    this->cs.move_rover(Direction::get_directions("STOP"), 1);
+    this->cs->move_rover(Direction::get_directions("STOP"), 1);
     ui->listInfos->addItem(getDate()+"Freeze all motor functions");
 }
 
@@ -95,7 +95,7 @@ void MainWindow::clickRec() {
     QString s = ui->comboRec->currentText();
     int recorded = checkRecorded(s);
     if(recorded<0) {
-    cs->start_recording(s.toUpper());
+    cs->start_recording(s.toUpper().toStdString());
         ui->listInfos->addItem(getDate()+"Recording "+s);
         ui->listCurrentRec->addItem(s);
     }
@@ -108,7 +108,7 @@ void MainWindow::clickStopRec() {
     QString s = ui->comboRec->currentText();
     int recorded = checkRecorded(s);
     if(recorded>=0) {
-        cs->stop_recording(s.toUpper());
+        cs->stop_recording(s.toUpper().toStdString());
         ui->listInfos->addItem(getDate()+"Recording of "+s+" has stopped");
         QListWidgetItem *item = ui->listCurrentRec->item(recorded);
         delete item;

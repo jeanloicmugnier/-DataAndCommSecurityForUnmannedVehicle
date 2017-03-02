@@ -14,7 +14,7 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-using namespace std::map;
+//using namespace std::map;
 
 
 #include <map>

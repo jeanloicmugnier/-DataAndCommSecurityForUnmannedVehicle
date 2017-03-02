@@ -1,1 +1,1 @@
-class Sync : Command{};
+//class Sync : Command{};

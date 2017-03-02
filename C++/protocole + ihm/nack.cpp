@@ -1,2 +1,1 @@
-
-class Nack : Command{};
+//class Nack : Command{};

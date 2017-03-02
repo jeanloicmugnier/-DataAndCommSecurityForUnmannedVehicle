@@ -13,6 +13,7 @@
 
 
 #include "sensors.h"
+#include <stdexcept>
 
 Sensors::Sensors() {
 

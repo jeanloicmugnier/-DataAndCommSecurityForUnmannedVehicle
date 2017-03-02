@@ -1,4 +1,5 @@
 #include "command.h"
+#include <stdexcept>
 
 void Command::make_frame(Frame * f) {
 

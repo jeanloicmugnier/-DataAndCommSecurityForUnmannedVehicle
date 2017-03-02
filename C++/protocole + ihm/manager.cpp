@@ -16,7 +16,7 @@
 class Manager {
 public:
     Rover rover;
-}
+};
 
 
 

@@ -17,4 +17,4 @@ class encryption{
 		string cipher = crypto_stream_xor(msg,nounce,key);		
 	}
 	
-}
+};

@@ -1,1 +1,1 @@
-class Update : Command{};
+//class Update : Command{};

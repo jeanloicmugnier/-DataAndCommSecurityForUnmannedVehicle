@@ -1,1 +1,1 @@
-class Erase : Command{};
+//class Erase : Command{};

@@ -1,2 +1,1 @@
-
-class Ack : Command{};
+//class Ack : Command{};

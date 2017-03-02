@@ -1,1 +1,1 @@
-class Disconnect : Command{};
+//class Disconnect : Command{};

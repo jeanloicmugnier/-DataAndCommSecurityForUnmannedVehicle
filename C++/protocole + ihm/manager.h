@@ -14,6 +14,8 @@
 #ifndef MANAGER_H
 #define MANAGER_H
 
+#include "rover.h"
+
 class manager {
 public:
     manager();
