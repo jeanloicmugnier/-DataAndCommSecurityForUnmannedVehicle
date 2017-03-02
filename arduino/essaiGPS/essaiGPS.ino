@@ -13,6 +13,8 @@
 
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
+#include "tweetnacl.c"
+#include <SD.h>
 
 // If you're using a GPS module:
 // Connect the GPS Power pin to 5V
@@ -40,6 +42,11 @@ SoftwareSerial mySerial(3, 2);
 
 
 Adafruit_GPS GPS(&mySerial);
+File file;
+int counter = 0;
+const byte rxAddr[6] = "00001";
+char* key = "01234567891011121314151617181920"; // should have length 32 bytes
+char* nounce="000000010000000100000002"; // should have length 24 bytes
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
@@ -85,6 +92,10 @@ void setup()
   delay(1000);
   // Ask for firmware version
   mySerial.println(PMTK_Q_RELEASE);
+   if(!SD.begin(4)) {
+      Serial.println("Initialisation carte échouée");
+      return;
+    }
 }
 
 
@@ -114,9 +125,9 @@ void useInterrupt(boolean v) {
   }
 }
 
-uint32_t timer = millis();
 void loop()                     // run over and over again
 {
+  //file = SD.open("GPS.txt", FILE_WRITE);
   // in case you are not using the interrupt above, you'll
   // need to 'hand query' the GPS, not suggested :(
   if (! usingInterrupt) {
@@ -137,40 +148,47 @@ void loop()                     // run over and over again
     if (!GPS.parse(GPS.lastNMEA()))   // this also sets the newNMEAreceived() flag to false
       return;  // we can fail to parse a sentence in which case we should just wait for another
   }
-
-  // if millis() or timer wraps around, we'll just reset it
-  if (timer > millis())  timer = millis();
-
-  // approximately every 2 seconds or so, print out the current stats
-  if (millis() - timer > 2000) { 
-    timer = millis(); // reset the timer
-    
+/*
+   
     Serial.print("\nTime: ");
     Serial.print(GPS.hour, DEC); Serial.print(':');
     Serial.print(GPS.minute, DEC); Serial.print(':');
     Serial.print(GPS.seconds, DEC); Serial.print('.');
-    Serial.println(GPS.milliseconds);
     Serial.print("Date: ");
     Serial.print(GPS.day, DEC); Serial.print('/');
     Serial.print(GPS.month, DEC); Serial.print("/20");
-    Serial.println(GPS.year, DEC);
-    Serial.print("Fix: "); Serial.print((int)GPS.fix);
-    Serial.print(" quality: "); Serial.println((int)GPS.fixquality); 
+    Serial.println(GPS.year, DEC);*/
     if (GPS.fix) {
-      Serial.print("Location: ");
-      Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
-      Serial.print(", "); 
-      Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
-      Serial.print("Location (in degrees, works with Google Maps): ");
-      Serial.print(GPS.latitudeDegrees, 4);
-      Serial.print(", "); 
-      Serial.println(GPS.longitudeDegrees, 4);
-      
-      Serial.print("Speed (knots): "); Serial.println(GPS.speed);
-      Serial.print("Angle: "); Serial.println(GPS.angle);
-      Serial.print("Altitude: "); Serial.println(GPS.altitude);
-      Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
-    }
-  }
+       String msg = String(GPS.day, DEC) + '/' + String(GPS.month, DEC) + '/' + String(GPS.year, DEC) + '-';
+       msg += String(GPS.hour, DEC) + ':' + String(GPS.minute, DEC) + ':' + String(GPS.seconds, DEC) + '-';
+       msg += String(GPS.latitudeDegrees, 4) + ',' + String(GPS.longitudeDegrees, 4);
+       //Serial.print("Location: ");
+      //Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+      //Serial.print(", "); 
+      //Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+      //Serial.print("Location in degrees:");
+      //Serial.print(GPS.latitudeDegrees, 4);
+      //Serial.print(", "); 
+      //Serial.println(GPS.longitudeDegrees, 4);
+      Serial.println(msg);
+      char data[msg.length() + 1];
+      msg.toCharArray(data, msg.length());
+      Serial.println("le char");
+      Serial.println(data);
+      char* c = malloc(msg.length());
+      char* dec = malloc(msg.length());
+    
+      crypto_stream_xor(c,data,strlen(data),nounce,key);
+      crypto_stream_xor(dec, c, strlen(c),nounce,key);
+
+      Serial.println("the message is:'" + (String)msg + "'");
+      Serial.println("the crypted msg is:'" + (String)c + "'");
+      Serial.println("the decrypted msg is:'" + (String)dec + "'");
+      /*file.write(data);
+      file.write(c);
+      file.write(dec);
+      file.close();*/
+      delay(5000);
+   }
 }
 

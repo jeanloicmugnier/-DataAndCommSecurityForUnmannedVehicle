@@ -576,11 +576,11 @@ void setup(void) {
   initMotorShield ();                                     // initialise le motorschield
 
   // initialisation accelerometre-magnetometre
-  Wire.begin();
+ /* Wire.begin();
   displayMsg ("Calibration accelerometre et magnetometre .....");
   compass.init();
   compass.enableDefault();
-  calibrateLSM303();
+  calibrateLSM303();*/
 
   // initialisation du compteur de temps
   displayMsg ("Initialisation des timers .....");
