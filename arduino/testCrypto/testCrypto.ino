@@ -1,25 +1,47 @@
+#include <SD.h>
+
 #include "tweetnacl.c"
 #include <SPI.h>
 #include "RF24.h"
 #include <nRF24L01.h>
 
-
-RF24 radio(9,53);
-
-const byte rxAddr[6] = "00001";
+File file;
 char* key = "01234567891011121314151617181920"; // should have length 32 bytes
 char* nounce="000000010000000100000002"; // should have length 24 bytes
 
 void setup() {
     Serial.begin(9600);
-    radio.begin();
-    radio.setPALevel(RF24_PA_MIN);
-    radio.openReadingPipe(0, rxAddr);
-  
-   radio.startListening();
+    if(!SD.begin(4)) {
+      Serial.println("Initialisation carte échouée");
+      return;
+    }
+    file = SD.open("GPS.txt", FILE_WRITE);
+    char* msg = "28/2/2017 - 13:46:58 - 43.6156, 7.0724";
+    int lengthMsg = strlen(msg) +1;
+    char* c = (char*)malloc(lengthMsg);
+    char* dec = (char*)malloc(lengthMsg);
+    
+    crypto_stream_xor(c,msg,lengthMsg,nounce,key);
+    crypto_stream_xor(dec, c, lengthMsg,nounce,key);
+
+    Serial.println("Message: '" + String(msg) + "'");
+    Serial.println("Message chiffre: '" + String(c) + "'");
+    Serial.println("Message dechiffre: '" + String(dec) + "'");
+    file.print("Data: ");
+    file.write(msg);
+    file.println("\n");
+    file.print("Cipher: ");
+    file.write(c);
+    file.println("\n");
+    file.print("Deciphered: ");
+    file.write(dec);
+    file.println("\n");
+    file.close();
+    return;
 }
 
 void loop() {
+/* code benchmark
   if (radio.available())
   {
     char msg[400] = {0};
@@ -43,7 +65,7 @@ void loop() {
 
     //Serial.println("the message is:'" + (String)msg + "'");
     Serial.println("the decrypted msg is:'" + (String)dec + "'");
-  } 
+  }  */
 }
 
 
